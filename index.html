@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PANTHEON — Gaming Library Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080a0f;
+    --surface: #0e1117;
+    --surface2: #141820;
+    --border: #1e2535;
+    --steam: #1b9af7;
+    --xbox: #107c10;
+    --epic: #2f2f2f;
+    --epic-accent: #c7c7c7;
+    --text: #e8eaf0;
+    --muted: #5a6478;
+    --accent: #f0a500;
+    --danger: #e05252;
+    --success: #3dd68c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* HEADER */
+  header {
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(8,10,15,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(240,165,0,0.4);
+  }
+
+  .logo span {
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.3em;
+    display: block;
+    margin-top: -6px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .total-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .total-badge strong {
+    color: var(--accent);
+    font-size: 1.1rem;
+  }
+
+  /* MAIN LAYOUT */
+  .app {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 73px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* PLATFORM CARDS */
+  .platform-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .platform-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--platform-color, var(--muted));
+    transition: width 0.2s;
+  }
+
+  .platform-card:hover {
+    border-color: var(--platform-color, var(--muted));
+    background: rgba(255,255,255,0.02);
+  }
+
+  .platform-card:hover::before { width: 4px; }
+
+  .platform-card.steam { --platform-color: var(--steam); }
+  .platform-card.xbox { --platform-color: var(--xbox); }
+  .platform-card.epic { --platform-color: var(--epic-accent); }
+
+  .platform-card.active {
+    border-color: var(--platform-color);
+    background: rgba(255,255,255,0.03);
+  }
+
+  .platform-card.connected .status-dot {
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+  }
+
+  .platform-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .platform-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    color: var(--platform-color, var(--text));
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  .platform-stats {
+    display: flex;
+    gap: 16px;
+  }
+
+  .pstat {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .pstat strong {
+    display: block;
+    font-size: 1rem;
+    color: var(--text);
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.05em;
+  }
+
+  .connect-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .connect-btn:hover {
+    border-color: var(--platform-color, var(--accent));
+    color: var(--platform-color, var(--accent));
+  }
+
+  /* NAV FILTERS */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    transition: all 0.15s;
+    margin-bottom: 2px;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--surface2); color: var(--accent); }
+
+  .nav-icon { font-size: 0.9rem; }
+
+  /* MAIN CONTENT */
+  .main {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOOLBAR */
+  .toolbar {
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-box {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-box::placeholder { color: var(--muted); }
+  .search-box:focus { border-color: var(--accent); }
+
+  .sort-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .sort-btn:hover, .sort-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 4px;
+  }
+
+  .view-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+
+  .view-btn.active {
+    background: var(--surface2);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* GAME GRID */
+  .game-grid {
+    padding: 24px 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    overflow-y: auto;
+  }
+
+  .game-grid.list-view {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  /* GAME CARD */
+  .game-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: fadeUp 0.4s both;
+    position: relative;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .game-card:hover {
+    border-color: #2e3650;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  }
+
+  .game-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+    background: var(--surface2);
+  }
+
+  .game-img-placeholder {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+  }
+
+  .platform-tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-size: 0.55rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+
+  .platform-tag.steam { background: rgba(27,154,247,0.85); color: #fff; }
+  .platform-tag.xbox { background: rgba(16,124,16,0.85); color: #fff; }
+  .platform-tag.epic { background: rgba(60,60,60,0.9); color: #ddd; }
+
+  .game-info {
+    padding: 12px;
+  }
+
+  .game-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .game-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .game-hours {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .achievement-bar {
+    margin-top: 8px;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .achievement-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  /* LIST VIEW CARD */
+  .game-grid.list-view .game-card {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: center;
+    border-radius: 6px;
+  }
+
+  .game-grid.list-view .game-img-placeholder,
+  .game-grid.list-view .game-img {
+    aspect-ratio: 16/9;
+    height: 48px;
+    width: 80px;
+    border-radius: 0;
+  }
+
+  .game-grid.list-view .game-info {
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .game-grid.list-view .game-title {
+    margin-bottom: 0;
+    min-width: 200px;
+  }
+
+  .game-grid.list-view .achievement-bar { display: none; }
+
+  .game-grid.list-view .platform-tag {
+    position: static;
+    margin-right: 16px;
+  }
+
+  /* CONNECT MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    width: 420px;
+    max-width: 90vw;
+    transform: translateY(20px);
+    transition: transform 0.2s;
+  }
+
+  .modal-overlay.open .modal {
+    transform: translateY(0);
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .modal-sub {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 24px;
+  }
+
+  .modal-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .modal-input:focus { border-color: var(--accent); }
+
+  .modal-note {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .modal-note a { color: var(--accent); text-decoration: none; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    padding: 12px;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    color: var(--bg);
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-secondary {
+    padding: 12px 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+
+  /* GAME DETAIL PANEL */
+  .detail-panel {
+    position: fixed;
+    right: -480px;
+    top: 73px;
+    bottom: 0;
+    width: 440px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 150;
+    transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    overflow-y: auto;
+  }
+
+  .detail-panel.open { right: 0; }
+
+  .detail-hero {
+    position: relative;
+  }
+
+  .detail-hero-img {
+    width: 100%;
+    aspect-ratio: 16/7;
+    object-fit: cover;
+    display: block;
+    background: var(--surface2);
+  }
+
+  .detail-hero-placeholder {
+    width: 100%;
+    aspect-ratio: 16/7;
+    background: linear-gradient(135deg, var(--surface2), var(--border));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+  }
+
+  .detail-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    background: rgba(0,0,0,0.6);
+    border: none;
+    border-radius: 50%;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .detail-body {
+    padding: 24px;
+  }
+
+  .detail-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
+  .detail-platform {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .detail-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .dstat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .dstat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    display: block;
+  }
+
+  .dstat-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .achievements-section { margin-bottom: 24px; }
+
+  .ach-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .ach-progress-text {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .ach-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .ach-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+    border-radius: 6px;
+  }
+
+  .ach-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .ach-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 0.72rem;
+  }
+
+  .ach-icon { font-size: 1.2rem; filter: grayscale(1); }
+  .ach-item.unlocked .ach-icon { filter: none; }
+
+  .ach-name { font-family: 'Syne', sans-serif; font-weight: 600; flex: 1; }
+  .ach-desc { font-size: 0.62rem; color: var(--muted); margin-top: 1px; }
+
+  .ach-check { color: var(--success); font-size: 0.9rem; }
+  .ach-lock { color: var(--muted); font-size: 0.85rem; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    color: var(--muted);
+    gap: 16px;
+    text-align: center;
+  }
+
+  .empty-icon { font-size: 3rem; }
+  .empty-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); }
+  .empty-sub { font-size: 0.72rem; letter-spacing: 0.05em; line-height: 1.7; }
+
+  /* LOADING */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    z-index: 999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    max-width: 300px;
+  }
+
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .toast.success { border-color: var(--success); }
+  .toast.error { border-color: var(--danger); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ============================================================
+     MOBILE — tam yeniden tasarım
+  ============================================================ */
+  @media (max-width: 768px) {
+
+    /* Header küçül */
+    header {
+      padding: 14px 16px;
+    }
+
+    .logo { font-size: 1.5rem; }
+    .logo span { font-size: 0.6rem; letter-spacing: 0.2em; }
+
+    .total-badge { font-size: 0.6rem; }
+    .total-badge strong { font-size: 0.9rem; }
+
+    /* App layout — tek kolon, bottom nav için padding */
+    .app {
+      grid-template-columns: 1fr;
+      min-height: calc(100vh - 60px);
+      padding-bottom: 70px;
+    }
+
+    /* Sidebar — drawer olarak aç/kapat */
+    .sidebar {
+      position: fixed;
+      left: -100%;
+      top: 0;
+      bottom: 0;
+      width: 85%;
+      max-width: 300px;
+      z-index: 300;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 80px 20px 32px;
+      gap: 24px;
+      transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      overflow-y: auto;
+    }
+
+    .sidebar.drawer-open { left: 0; }
+
+    /* Drawer backdrop */
+    .drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 299;
+      backdrop-filter: blur(2px);
+    }
+
+    .drawer-backdrop.show { display: block; }
+
+    /* Toolbar */
+    .toolbar {
+      padding: 10px 12px;
+      gap: 8px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+
+    .search-box {
+      min-width: 0;
+      flex: 1;
+      font-size: 0.75rem;
+      padding: 9px 12px;
+    }
+
+    .sort-btn {
+      font-size: 0.6rem;
+      padding: 9px 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .view-toggle { flex-shrink: 0; }
+    .view-btn { padding: 9px 10px; }
+
+    /* Game grid — 2 kolon */
+    .game-grid {
+      padding: 12px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .game-grid.list-view {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .game-grid.list-view .game-card {
+      grid-template-columns: 72px 1fr auto;
+    }
+
+    .game-grid.list-view .game-img,
+    .game-grid.list-view .game-img-placeholder {
+      height: 44px;
+      width: 72px;
+    }
+
+    .game-grid.list-view .game-info {
+      padding: 6px 10px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .game-grid.list-view .game-title {
+      min-width: unset;
+      font-size: 0.72rem;
+    }
+
+    /* Game card font küçült */
+    .game-title { font-size: 0.72rem; }
+    .game-meta { font-size: 0.6rem; }
+
+    /* Detail panel — tam ekran */
+    .detail-panel {
+      width: 100%;
+      right: -100%;
+      top: 0;
+      z-index: 400;
+    }
+
+    .detail-panel.open { right: 0; }
+
+    .detail-close {
+      top: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+      font-size: 1.1rem;
+    }
+
+    .detail-title { font-size: 1.4rem; }
+
+    /* Modal */
+    .modal {
+      width: 95vw;
+      padding: 24px 20px;
+      margin: 16px;
+    }
+
+    .modal-title { font-size: 1.3rem; }
+
+    /* Toast — üstte göster mobilde */
+    .toast {
+      bottom: unset;
+      top: 80px;
+      right: 12px;
+      left: 12px;
+      max-width: unset;
+      transform: translateY(-20px);
+      font-size: 0.72rem;
+    }
+
+    .toast.show { transform: translateY(0); }
+
+    /* BOTTOM NAV BAR */
+    .bottom-nav {
+      display: flex !important;
+    }
+  }
+
+  /* Bottom nav — sadece mobilde görünür */
+  .bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background: rgba(8,10,15,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    z-index: 200;
+    align-items: stretch;
+  }
+
+  .bnav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    padding: 8px 0;
+  }
+
+  .bnav-item.active { color: var(--accent); }
+
+  .bnav-svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .bnav-item.platforms-btn .bnav-svg { width: 20px; height: 20px; }
+
+  .bnav-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* Hamburger butonu header'da — sadece mobil */
+  .menu-btn {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    padding: 6px 10px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .menu-btn { display: flex; align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="menu-btn" onclick="toggleDrawer()" aria-label="Menu">&#9776;</button>
+    <div class="logo">
+      PANTHEON
+      <span>GAMING LIBRARY HUB</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="total-badge">
+      OYUN<br>
+      <strong id="totalCount">0</strong>
+    </div>
+    <div class="total-badge">
+      SAAT<br>
+      <strong id="totalHours">0s</strong>
+    </div>
+  </div>
+</header>
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="section-label">PLATFORMLAR</div>
+
+      <div class="platform-card steam" id="steamCard" onclick="showPlatformModal('steam')">
+        <div class="platform-header">
+          <span class="platform-name">STEAM</span>
+          <div class="status-dot" id="steamDot"></div>
+        </div>
+        <div class="platform-stats" id="steamStats">
+          <div class="pstat"><strong>—</strong>Oyun</div>
+          <div class="pstat"><strong>—</strong>Saat</div>
+        </div>
+        <button class="connect-btn" id="steamConnectBtn">+ BAĞLAN</button>
+      </div>
+
+      <div class="platform-card xbox" id="xboxCard" onclick="showPlatformModal('xbox')">
+        <div class="platform-header">
+          <span class="platform-name">XBOX</span>
+          <div class="status-dot" id="xboxDot"></div>
+        </div>
+        <div class="platform-stats" id="xboxStats">
+          <div class="pstat"><strong>—</strong>Oyun</div>
+          <div class="pstat"><strong>—</strong>Saat</div>
+        </div>
+        <button class="connect-btn" id="xboxConnectBtn">+ BAĞLAN</button>
+      </div>
+
+      <div class="platform-card epic" id="epicCard" onclick="showPlatformModal('epic')">
+        <div class="platform-header">
+          <span class="platform-name" style="color:var(--epic-accent)">EPIC GAMES</span>
+          <div class="status-dot" id="epicDot"></div>
+        </div>
+        <div class="platform-stats" id="epicStats">
+          <div class="pstat"><strong>—</strong>Oyun</div>
+          <div class="pstat"><strong>—</strong>Saat</div>
+        </div>
+        <button class="connect-btn" id="epicConnectBtn">+ BAĞLAN</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">GÖRÜNÜM</div>
+      <div class="nav-item active" id="navAll" onclick="filterPlatform('all')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7C4.24 3 2 5.24 2 8v6c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V8c0-2.76-2.24-5-5-5zm-8 8H8v1a1 1 0 0 1-2 0v-1H5a1 1 0 0 1 0-2h1V9a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2zm7.5 1a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm2-3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg> TÜM OYUNLAR
+      </div>
+      <div class="nav-item" id="navSteam" onclick="filterPlatform('steam')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.606 0 11.979 0z"/></svg> STEAM
+      </div>
+      <div class="nav-item" id="navXbox" onclick="filterPlatform('xbox')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.9 4.636s1.9 2.18 1.9 2.18 1.9-2.18 1.9-2.18c3.073.718 5.463 3.11 6.18 6.184 0 0-2.18-1.9-2.18-1.9s1.9 1.9 1.9 1.9c0 .13.004.26.004.392 0 4.364-3.536 7.9-7.9 7.9-4.364 0-7.9-3.536-7.9-7.9 0-.132.004-.262.004-.392 0 0 1.9-1.9 1.9-1.9S3.82 10.82 3.82 10.82C4.537 7.746 6.927 5.354 12 4.636z"/></svg> XBOX
+      </div>
+      <div class="nav-item" id="navEpic" onclick="filterPlatform('epic')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4.2 0v24H12c6.627 0 7.8-4.8 7.8-7.2V7.2C19.8 4.8 18.627 0 12 0H4.2zm9.9 4.8c1.327 0 2.1.792 2.1 2.4v9.6c0 1.608-.773 2.4-2.1 2.4H8.4V4.8h5.7z"/></svg> EPIC GAMES
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">FİLTRE</div>
+      <div class="nav-item" id="navRecent" onclick="filterType('recent')">
+        <span class="nav-icon">🕐</span> SON OYNANANLAR
+      </div>
+      <div class="nav-item" id="navAch" onclick="filterType('achievements')">
+        <span class="nav-icon">🏆</span> BAŞARIMLI OYUNLAR
+      </div>
+      <div class="nav-item" id="navMost" onclick="filterType('most')">
+        <span class="nav-icon">🔥</span> EN ÇOK OYNANAN
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="toolbar">
+      <input class="search-box" type="text" placeholder="Oyun ara..." id="searchInput" oninput="filterGames()">
+      <button class="sort-btn active" id="sortName" onclick="sortGames('name')">İSİM</button>
+      <button class="sort-btn" id="sortHours" onclick="sortGames('hours')">SÜRE</button>
+      <button class="sort-btn" id="sortAch" onclick="sortGames('achievements')">BAŞARIM</button>
+      <div class="view-toggle">
+        <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid">⊞</button>
+        <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="Liste">☰</button>
+      </div>
+    </div>
+
+    <div class="game-grid" id="gameGrid">
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🎮</div>
+        <div class="empty-title">Henüz hesap bağlanmadı</div>
+        <div class="empty-sub">Sol panelden Steam, Xbox veya Epic Games<br>hesabını bağlayarak kütüphaneni görüntüle.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">BAĞLAN</div>
+    <div class="modal-sub" id="modalSub">Kütüphaneni görüntülemek için hesabını bağla</div>
+
+    <div id="steamForm" style="display:none">
+      <input class="modal-input" type="text" id="steamId" placeholder="Steam64 ID (örn: 76561199389197978)">
+      <div class="modal-note">
+        Steam64 ID bulmak için → <a href="https://steamid.io" target="_blank">steamid.io</a><br>
+        Veya profil linkinden kopyala: steamcommunity.com/profiles/<strong>ID</strong><br>
+        <strong style="color:var(--accent)">⚠ Profil oyun listesi herkese açık olmalı.</strong>
+      </div>
+    </div>
+
+    <div id="xboxForm" style="display:none">
+      <div class="modal-note" style="margin-bottom:0">
+        <strong style="color:var(--success)">✓ Bağlan butonuna bas, kütüphanen yüklensin.</strong>
+      </div>
+    </div>
+
+    <div id="epicForm" style="display:none">
+      <div class="modal-note" style="margin-bottom:0">
+        Epic Games resmi API sunmuyor. Legendary CLI bridge kurulumu gerekli.<br>
+        <strong style="color:var(--accent)">⚠ Epic entegrasyonu yakında geliyor.</strong>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn-primary" onclick="connectPlatform()">BAĞLAN</button>
+      <button class="btn-secondary" onclick="closeModalDirect()">İPTAL</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detailPanel">
+  <div id="detailContent"></div>
+</div>
+
+<!-- BOTTOM NAV (mobil) -->
+<nav class="bottom-nav">
+  <div class="bnav-item active" id="bnavAll" onclick="bnavFilter('all')">
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7C4.24 3 2 5.24 2 8v6c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V8c0-2.76-2.24-5-5-5zm-8 8H8v1a1 1 0 0 1-2 0v-1H5a1 1 0 0 1 0-2h1V9a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2zm7.5 1a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm2-3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+    <span class="bnav-label">TÜMÜ</span>
+  </div>
+  <div class="bnav-item" id="bnavSteam" onclick="bnavFilter('steam')">
+    <!-- Steam logosu -->
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.606 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.455 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.252 0-2.265-1.014-2.265-2.265z"/></svg>
+    <span class="bnav-label">STEAM</span>
+  </div>
+  <div class="bnav-item" id="bnavXbox" onclick="bnavFilter('xbox')">
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.9 4.636s1.9 2.18 1.9 2.18 1.9-2.18 1.9-2.18c3.073.718 5.463 3.11 6.18 6.184 0 0-2.18-1.9-2.18-1.9s1.9 1.9 1.9 1.9c0 .13.004.26.004.392 0 4.364-3.536 7.9-7.9 7.9-4.364 0-7.9-3.536-7.9-7.9 0-.132.004-.262.004-.392 0 0 1.9-1.9 1.9-1.9S3.82 10.82 3.82 10.82C4.537 7.746 6.927 5.354 12 4.636z"/></svg>
+    <span class="bnav-label">XBOX</span>
+  </div>
+  <div class="bnav-item" id="bnavEpic" onclick="bnavFilter('epic')">
+    <!-- Epic Games logosu -->
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.2 0v24H12c6.627 0 7.8-4.8 7.8-7.2V7.2C19.8 4.8 18.627 0 12 0H4.2zm9.9 4.8c1.327 0 2.1.792 2.1 2.4v9.6c0 1.608-.773 2.4-2.1 2.4H8.4V4.8h5.7z"/></svg>
+    <span class="bnav-label">EPIC</span>
+  </div>
+  <div class="bnav-item platforms-btn" onclick="toggleDrawer()">
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm0-13a1 1 0 0 0-1 1v4a1 1 0 0 0 .553.894l3 1.5a1 1 0 0 0 .894-1.788L13 11.382V8a1 1 0 0 0-1-1z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="bnav-label">HESAPLAR</span>
+  </div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const STATE = {
+  games: [],
+  filtered: [],
+  activePlatform: 'all',
+  activeFilter: null,
+  sortBy: 'name',
+  viewMode: 'grid',
+  currentModal: null,
+  connected: { steam: false, xbox: false, epic: false },
+  credentials: {}
+};
+
+// ============================================================
+// WORKER URL — buraya kendi Cloudflare Worker URL'ini yaz
+// ============================================================
+const WORKER_URL = 'https://pantheon.enesseker2113.workers.dev';
+
+// ============================================================
+// DRAWER (MOBİL)
+// ============================================================
+function toggleDrawer() {
+  var sidebar = document.querySelector('.sidebar');
+  var backdrop = document.getElementById('drawerBackdrop');
+  var isOpen = sidebar.classList.contains('drawer-open');
+  if (isOpen) {
+    sidebar.classList.remove('drawer-open');
+    backdrop.classList.remove('show');
+  } else {
+    sidebar.classList.add('drawer-open');
+    backdrop.classList.add('show');
+  }
+}
+
+function closeDrawer() {
+  document.querySelector('.sidebar').classList.remove('drawer-open');
+  document.getElementById('drawerBackdrop').classList.remove('show');
+}
+
+// Bottom nav platform filtresi
+function bnavFilter(platform) {
+  document.querySelectorAll('.bnav-item[id^="bnav"]').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  var el = document.getElementById('bnav' + platform.charAt(0).toUpperCase() + platform.slice(1));
+  if (el) { el.classList.add('active'); }
+  filterPlatform(platform);
+  closeDrawer();
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function showPlatformModal(platform) {
+  STATE.currentModal = platform;
+
+  closeDrawer();
+
+  var titles = {
+    steam: 'STEAM BAĞLA',
+    xbox: 'XBOX BAĞLA',
+    epic: 'EPIC GAMES BAĞLA'
+  };
+  var subs = {
+    steam: 'Steam kütüphaneni görüntülemek için Steam64 ID gir',
+    xbox: 'Xbox kütüphaneni otomatik olarak yükle',
+    epic: 'Epic Games entegrasyonu hakkında bilgi'
+  };
+
+  document.getElementById('modalTitle').textContent = titles[platform] || 'BAĞLAN';
+  document.getElementById('modalSub').textContent = subs[platform] || '';
+
+  // Önce hepsini gizle
+  document.getElementById('steamForm').style.display = 'none';
+  document.getElementById('xboxForm').style.display = 'none';
+  document.getElementById('epicForm').style.display = 'none';
+
+  // Sadece seçileni göster
+  document.getElementById(platform + 'Form').style.display = 'block';
+
+  setTimeout(function() {
+    document.getElementById('modalOverlay').classList.add('open');
+  }, 150);
+}
+
+function closeModal(event) {
+  if (event.target === document.getElementById('modalOverlay')) closeModalDirect();
+}
+
+function closeModalDirect() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// ============================================================
+// CONNECT PLATFORM
+// ============================================================
+async function connectPlatform() {
+  var platform = STATE.currentModal;
+
+  if (platform === 'steam') {
+    var steamId = document.getElementById('steamId').value.trim();
+    if (!steamId) { showToast('Steam ID gerekli!', 'error'); return; }
+    STATE.credentials.steam = { steamId: steamId };
+    localStorage.setItem('vault_steam', JSON.stringify({ steamId: steamId }));
+    closeModalDirect();
+    await loadSteamLibrary(steamId);
+  }
+
+  if (platform === 'xbox') {
+    closeModalDirect();
+    await loadXboxLibrary();
+  }
+
+  if (platform === 'epic') {
+    showToast('Epic entegrasyonu beta — Legendary CLI bridge gerekli.', 'error');
+    closeModalDirect();
+  }
+}
+
+// ============================================================
+// XBOX LIBRARY LOADER
+// ============================================================
+async function loadXboxLibrary() {
+  showLoading();
+  try {
+    var res = await fetch(WORKER_URL + '/xbox/library');
+    if (!res.ok) { throw new Error('Worker hatası: ' + res.status); }
+    var data = await res.json();
+
+    if (!data.games || data.games.length === 0) {
+      showToast('Xbox kütüphanesi boş!', 'error');
+      renderEmpty();
+      return;
+    }
+
+    STATE.connected.xbox = true;
+    localStorage.setItem('vault_xbox', '1');
+    updatePlatformCard('xbox', data.games);
+    mergeGames(data.games, 'xbox');
+    showToast('Xbox kütüphanesi yüklendi! ' + data.games.length + ' oyun.', 'success');
+  } catch (err) {
+    console.error(err);
+    showToast('Xbox bağlantı hatası: ' + err.message, 'error');
+    renderEmpty();
+  }
+}
+
+// ============================================================
+// STEAM LIBRARY LOADER (key'siz XML)
+// ============================================================
+async function loadSteamLibrary(steamId) {
+  showLoading();
+  try {
+    var res = await fetch(WORKER_URL + '/steam/library?steamid=' + encodeURIComponent(steamId));
+    if (!res.ok) { throw new Error('Worker hatası: ' + res.status); }
+    var data = await res.json();
+
+    if (!data.games || data.games.length === 0) {
+      showToast('Steam kütüphanesi boş veya gizli!', 'error');
+      renderEmpty();
+      return;
+    }
+
+    STATE.connected.steam = true;
+    updatePlatformCard('steam', data.games);
+    mergeGames(data.games, 'steam');
+    showToast('Steam kütüphanesi yüklendi! ' + data.games.length + ' oyun.', 'success');
+  } catch (err) {
+    console.error(err);
+    showToast('Steam bağlantı hatası: ' + err.message, 'error');
+    renderEmpty();
+  }
+}
+
+// ============================================================
+// MERGE & RENDER
+// ============================================================
+function mergeGames(newGames, platform) {
+  STATE.games = STATE.games.filter(function(g) { return g.platform !== platform; });
+  STATE.games = STATE.games.concat(newGames);
+  STATE.filtered = STATE.games.slice();
+  applySort();
+  renderGames();
+  updateTotals();
+}
+
+function updatePlatformCard(platform, games) {
+  var totalHours = games.reduce(function(sum, g) { return sum + g.hours; }, 0);
+  var dot = document.getElementById(platform + 'Dot');
+  var stats = document.getElementById(platform + 'Stats');
+  var btn = document.getElementById(platform + 'ConnectBtn');
+  var card = document.getElementById(platform + 'Card');
+
+  dot.style.background = 'var(--success)';
+  dot.style.boxShadow = '0 0 8px var(--success)';
+  card.classList.add('connected');
+  btn.textContent = '✓ BAĞLI';
+  btn.style.borderColor = 'var(--success)';
+  btn.style.color = 'var(--success)';
+
+  stats.innerHTML = '<div class="pstat"><strong>' + games.length + '</strong>Oyun</div>' +
+    '<div class="pstat"><strong>' + totalHours + '</strong>Saat</div>';
+}
+
+function updateTotals() {
+  var total = STATE.games.length;
+  var hours = STATE.games.reduce(function(sum, g) { return sum + g.hours; }, 0);
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('totalHours').textContent = hours + 's';
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderGames() {
+  var grid = document.getElementById('gameGrid');
+  grid.className = 'game-grid' + (STATE.viewMode === 'list' ? ' list-view' : '');
+
+  if (STATE.filtered.length === 0) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-title">Oyun bulunamadı</div><div class="empty-sub">Farklı bir arama deneyin.</div></div>';
+    return;
+  }
+
+  grid.innerHTML = STATE.filtered.map(function(game, idx) {
+    var achPct = game.achievements.total > 0 ? Math.round((game.achievements.unlocked / game.achievements.total) * 100) : 0;
+    var imgHtml = game.img
+      ? '<img class="game-img" src="' + game.img + '" alt="' + escHtml(game.name) + '" loading="lazy" onerror="this.style.display=\'none\';">'
+      : '<div class="game-img-placeholder">🎮</div>';
+
+    var delay = Math.min(idx * 0.03, 1);
+
+    return '<div class="game-card" style="animation-delay:' + delay + 's" onclick="showDetail(' + idx + ')">' +
+      imgHtml +
+      '<span class="platform-tag ' + game.platform + '">' + game.platform.toUpperCase() + '</span>' +
+      '<div class="game-info">' +
+        '<div class="game-title">' + escHtml(game.name) + '</div>' +
+        '<div class="game-meta">' +
+          '<span class="game-hours">' + game.hours + 's</span>' +
+          (game.achievements.total > 0 ? '<span>🏆 ' + game.achievements.unlocked + '/' + game.achievements.total + '</span>' : '<span style="color:var(--muted)">—</span>') +
+        '</div>' +
+        (game.achievements.total > 0 ? '<div class="achievement-bar"><div class="achievement-fill" style="width:' + achPct + '%"></div></div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderEmpty() {
+  var grid = document.getElementById('gameGrid');
+  grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">😔</div><div class="empty-title">Yükleme başarısız</div><div class="empty-sub">Bilgileri kontrol edip tekrar dene.</div></div>';
+}
+
+function showLoading() {
+  var grid = document.getElementById('gameGrid');
+  grid.innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spinner"></div>KÜTÜPHANESİ YÜKLENİYOR...</div>';
+}
+
+// ============================================================
+// DETAIL PANEL
+// ============================================================
+function showDetail(idx) {
+  var game = STATE.filtered[idx];
+  if (!game) return;
+
+  var achPct = game.achievements.total > 0 ? Math.round((game.achievements.unlocked / game.achievements.total) * 100) : 0;
+
+  var imgHtml = game.img
+    ? '<img class="detail-hero-img" src="' + game.img + '" alt="' + escHtml(game.name) + '">'
+    : '<div class="detail-hero-placeholder">🎮</div>';
+
+  var achItems = '';
+  if (game.achievements && game.achievementList) {
+    achItems = game.achievementList.slice(0, 10).map(function(a) {
+      return '<div class="ach-item ' + (a.achieved ? 'unlocked' : '') + '">' +
+        '<span class="ach-icon">' + (a.achieved ? '🏆' : '🔒') + '</span>' +
+        '<div><div class="ach-name">' + escHtml(a.name || 'Başarım') + '</div>' +
+        '<div class="ach-desc">' + escHtml(a.description || '') + '</div></div>' +
+        '<span class="' + (a.achieved ? 'ach-check' : 'ach-lock') + '">' + (a.achieved ? '✓' : '○') + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  document.getElementById('detailContent').innerHTML =
+    '<div class="detail-hero">' +
+      imgHtml +
+      '<button class="detail-close" onclick="closeDetail()">✕</button>' +
+    '</div>' +
+    '<div class="detail-body">' +
+      '<div class="detail-title">' + escHtml(game.name) + '</div>' +
+      '<div class="detail-platform">' + game.platform.toUpperCase() + ' PLATFORM</div>' +
+      '<div class="detail-stats">' +
+        '<div class="dstat"><span class="dstat-value">' + game.hours + '</span><span class="dstat-label">SAAT</span></div>' +
+        '<div class="dstat"><span class="dstat-value">' + game.achievements.unlocked + '</span><span class="dstat-label">BAŞARIM</span></div>' +
+        '<div class="dstat"><span class="dstat-value">' + achPct + '%</span><span class="dstat-label">TAMAMLAMA</span></div>' +
+      '</div>' +
+      (game.achievements.total > 0 ?
+        '<div class="achievements-section">' +
+          '<div class="ach-header"><div class="section-label" style="margin:0">BAŞARIMLAR</div><div class="ach-progress-text">' + game.achievements.unlocked + ' / ' + game.achievements.total + '</div></div>' +
+          '<div class="ach-bar"><div class="ach-bar-fill" style="width:' + achPct + '%"></div></div>' +
+          (achItems ? '<div class="ach-list">' + achItems + '</div>' : '') +
+        '</div>'
+        : '<div style="color:var(--muted);font-size:0.72rem;letter-spacing:0.05em">Bu oyun için başarım verisi yok.</div>') +
+    '</div>';
+
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+}
+
+// ============================================================
+// FILTERS & SORT
+// ============================================================
+function filterPlatform(platform) {
+  STATE.activePlatform = platform;
+  closeDrawer();
+  document.querySelectorAll('[id^="nav"]').forEach(function(el) { el.classList.remove('active'); });
+  var navMap = { all: 'navAll', steam: 'navSteam', xbox: 'navXbox', epic: 'navEpic' };
+  if (navMap[platform]) { document.getElementById(navMap[platform]).classList.add('active'); }
+  applyFilters();
+}
+
+function filterType(type) {
+  STATE.activeFilter = STATE.activeFilter === type ? null : type;
+  closeDrawer();
+  document.querySelectorAll('#navRecent,#navAch,#navMost').forEach(function(el) { el.classList.remove('active'); });
+  if (STATE.activeFilter) {
+    var map = { recent: 'navRecent', achievements: 'navAch', most: 'navMost' };
+    if (map[type]) { document.getElementById(map[type]).classList.add('active'); }
+  }
+  applyFilters();
+}
+
+function filterGames() {
+  applyFilters();
+}
+
+function applyFilters() {
+  var query = document.getElementById('searchInput').value.toLowerCase();
+  var result = STATE.games.slice();
+
+  if (STATE.activePlatform !== 'all') {
+    result = result.filter(function(g) { return g.platform === STATE.activePlatform; });
+  }
+
+  if (query) {
+    result = result.filter(function(g) { return g.name.toLowerCase().indexOf(query) !== -1; });
+  }
+
+  if (STATE.activeFilter === 'recent') {
+    result = result.filter(function(g) { return g.recentMinutes > 0; });
+    result.sort(function(a, b) { return b.recentMinutes - a.recentMinutes; });
+  } else if (STATE.activeFilter === 'achievements') {
+    result = result.filter(function(g) { return g.achievements.unlocked > 0; });
+  } else if (STATE.activeFilter === 'most') {
+    result.sort(function(a, b) { return b.hours - a.hours; });
+  } else {
+    applySort(result);
+  }
+
+  STATE.filtered = result;
+  renderGames();
+}
+
+function sortGames(by) {
+  STATE.sortBy = by;
+  document.querySelectorAll('.sort-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('sort' + by.charAt(0).toUpperCase() + by.slice(1)).classList.add('active');
+  applyFilters();
+}
+
+function applySort(arr) {
+  var list = arr || STATE.filtered;
+  if (STATE.sortBy === 'name') {
+    list.sort(function(a, b) { return a.name.localeCompare(b.name); });
+  } else if (STATE.sortBy === 'hours') {
+    list.sort(function(a, b) { return b.hours - a.hours; });
+  } else if (STATE.sortBy === 'achievements') {
+    list.sort(function(a, b) { return b.achievements.unlocked - a.achievements.unlocked; });
+  }
+  if (!arr) STATE.filtered = list;
+}
+
+// ============================================================
+// VIEW MODE
+// ============================================================
+function setView(mode) {
+  STATE.viewMode = mode;
+  document.getElementById('gridViewBtn').classList.toggle('active', mode === 'grid');
+  document.getElementById('listViewBtn').classList.toggle('active', mode === 'list');
+  renderGames();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type || '');
+  setTimeout(function() { t.className = 'toast'; }, 3500);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+// INIT — localStorage'dan kayıtlı credentials yükle
+// ============================================================
+(function init() {
+  var steamSaved = localStorage.getItem('vault_steam');
+  if (steamSaved) {
+    try {
+      var creds = JSON.parse(steamSaved);
+      STATE.credentials.steam = creds;
+      document.getElementById('steamId').value = creds.steamId;
+      loadSteamLibrary(creds.steamId);
+    } catch (e) {
+      localStorage.removeItem('vault_steam');
+    }
+  }
+
+  // Xbox otomatik yükle
+  var xboxSaved = localStorage.getItem('vault_xbox');
+  if (xboxSaved) {
+    loadXboxLibrary();
+  }
+})();
+</script>
+</body>
+</html>
