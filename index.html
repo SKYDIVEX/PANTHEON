@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VAULT — Gaming Library Hub</title>
+<title>PANTHEON — Gaming Library Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -794,38 +794,357 @@
   .toast.success { border-color: var(--success); }
   .toast.error { border-color: var(--danger); }
 
+  /* ACHIEVEMENT TABS */
+  .ach-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .ach-tab {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .ach-tab.active {
+    background: var(--tab-color, var(--accent));
+    border-color: var(--tab-color, var(--accent));
+    color: #000;
+    font-weight: 600;
+  }
+
+  .ach-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  /* ACH ICON IMAGE */
+  .ach-icon-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  /* ACH DATE & GAMERSCORE */
+  .ach-date {
+    font-size: 0.58rem;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  .ach-gs {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    display: block;
+  }
+
+  .ach-secret {
+    font-size: 0.65rem;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* GAME BADGE */
+  .game-badge {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: #fff;
+    font-weight: 500;
+    z-index: 2;
+  }
+
+  /* HERO OVERLAY */
+  .detail-hero-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* SCROLLBAR for ach-list */
+  .ach-list::-webkit-scrollbar { width: 3px; }
+  .ach-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Detail panel transition */
+  .detail-panel {
+    transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.4s ease;
+  }
+
   /* SCROLLBAR */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
+  /* ============================================================
+     MOBILE — tam yeniden tasarım
+  ============================================================ */
   @media (max-width: 768px) {
-    .app { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-    header { padding: 16px 20px; }
-    .game-grid { padding: 16px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-    .detail-panel { width: 100%; right: -100%; }
+
+    /* Header küçül */
+    header {
+      padding: 14px 16px;
+    }
+
+    .logo { font-size: 1.5rem; }
+    .logo span { font-size: 0.6rem; letter-spacing: 0.2em; }
+
+    .total-badge { font-size: 0.6rem; }
+    .total-badge strong { font-size: 0.9rem; }
+
+    /* App layout — tek kolon, bottom nav için padding */
+    .app {
+      grid-template-columns: 1fr;
+      min-height: calc(100vh - 60px);
+      padding-bottom: 70px;
+    }
+
+    /* Sidebar — drawer olarak aç/kapat */
+    .sidebar {
+      position: fixed;
+      left: -100%;
+      top: 0;
+      bottom: 0;
+      width: 85%;
+      max-width: 300px;
+      z-index: 300;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 80px 20px 32px;
+      gap: 24px;
+      transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      overflow-y: auto;
+    }
+
+    .sidebar.drawer-open { left: 0; }
+
+    /* Drawer backdrop */
+    .drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 299;
+      backdrop-filter: blur(2px);
+    }
+
+    .drawer-backdrop.show { display: block; }
+
+    /* Toolbar */
+    .toolbar {
+      padding: 10px 12px;
+      gap: 8px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+
+    .search-box {
+      min-width: 0;
+      flex: 1;
+      font-size: 0.75rem;
+      padding: 9px 12px;
+    }
+
+    .sort-btn {
+      font-size: 0.6rem;
+      padding: 9px 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .view-toggle { flex-shrink: 0; }
+    .view-btn { padding: 9px 10px; }
+
+    /* Game grid — 2 kolon */
+    .game-grid {
+      padding: 12px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .game-grid.list-view {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .game-grid.list-view .game-card {
+      grid-template-columns: 72px 1fr auto;
+    }
+
+    .game-grid.list-view .game-img,
+    .game-grid.list-view .game-img-placeholder {
+      height: 44px;
+      width: 72px;
+    }
+
+    .game-grid.list-view .game-info {
+      padding: 6px 10px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .game-grid.list-view .game-title {
+      min-width: unset;
+      font-size: 0.72rem;
+    }
+
+    /* Game card font küçült */
+    .game-title { font-size: 0.72rem; }
+    .game-meta { font-size: 0.6rem; }
+
+    /* Detail panel — tam ekran */
+    .detail-panel {
+      width: 100% !important;
+      right: -100% !important;
+      top: 0 !important;
+      z-index: 400 !important;
+    }
+
+    .detail-panel.open { right: 0 !important; }
+
+    .detail-close {
+      top: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+      font-size: 1.1rem;
+    }
+
+    .detail-title { font-size: 1.4rem; }
+
+    /* Modal */
+    .modal {
+      width: 95vw;
+      padding: 24px 20px;
+      margin: 16px;
+    }
+
+    .modal-title { font-size: 1.3rem; }
+
+    /* Toast — üstte göster mobilde */
+    .toast {
+      bottom: unset;
+      top: 80px;
+      right: 12px;
+      left: 12px;
+      max-width: unset;
+      transform: translateY(-20px);
+      font-size: 0.72rem;
+    }
+
+    .toast.show { transform: translateY(0); }
+
+    /* BOTTOM NAV BAR */
+    .bottom-nav {
+      display: flex !important;
+    }
+  }
+
+  /* Bottom nav — sadece mobilde görünür */
+  .bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background: rgba(8,10,15,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    z-index: 200;
+    align-items: stretch;
+  }
+
+  .bnav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    padding: 8px 0;
+  }
+
+  .bnav-item.active { color: var(--accent); }
+
+  .bnav-svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .bnav-item.platforms-btn .bnav-svg { width: 20px; height: 20px; }
+
+  .bnav-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* Hamburger butonu header'da — sadece mobil */
+  .menu-btn {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    padding: 6px 10px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .menu-btn { display: flex; align-items: center; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    VAULT
-    <span>GAMING LIBRARY HUB</span>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="menu-btn" onclick="toggleDrawer()" aria-label="Menu">&#9776;</button>
+    <div class="logo">
+      PANTHEON
+      <span>GAMING LIBRARY HUB</span>
+    </div>
   </div>
   <div class="header-right">
     <div class="total-badge">
-      TOPLAM OYUN<br>
+      OYUN<br>
       <strong id="totalCount">0</strong>
     </div>
     <div class="total-badge">
-      TOPLAM SÜRE<br>
+      SAAT<br>
       <strong id="totalHours">0s</strong>
     </div>
   </div>
 </header>
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
 
 <div class="app">
   <!-- SIDEBAR -->
@@ -873,16 +1192,16 @@
     <div>
       <div class="section-label">GÖRÜNÜM</div>
       <div class="nav-item active" id="navAll" onclick="filterPlatform('all')">
-        <span class="nav-icon">🎮</span> TÜM OYUNLAR
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7C4.24 3 2 5.24 2 8v6c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V8c0-2.76-2.24-5-5-5zm-8 8H8v1a1 1 0 0 1-2 0v-1H5a1 1 0 0 1 0-2h1V9a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2zm7.5 1a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm2-3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg> TÜM OYUNLAR
       </div>
       <div class="nav-item" id="navSteam" onclick="filterPlatform('steam')">
-        <span class="nav-icon">🌊</span> STEAM
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.606 0 11.979 0z"/></svg> STEAM
       </div>
       <div class="nav-item" id="navXbox" onclick="filterPlatform('xbox')">
-        <span class="nav-icon">🟢</span> XBOX
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.9 4.636s1.9 2.18 1.9 2.18 1.9-2.18 1.9-2.18c3.073.718 5.463 3.11 6.18 6.184 0 0-2.18-1.9-2.18-1.9s1.9 1.9 1.9 1.9c0 .13.004.26.004.392 0 4.364-3.536 7.9-7.9 7.9-4.364 0-7.9-3.536-7.9-7.9 0-.132.004-.262.004-.392 0 0 1.9-1.9 1.9-1.9S3.82 10.82 3.82 10.82C4.537 7.746 6.927 5.354 12 4.636z"/></svg> XBOX
       </div>
       <div class="nav-item" id="navEpic" onclick="filterPlatform('epic')">
-        <span class="nav-icon">⚡</span> EPIC GAMES
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4.2 0v24H12c6.627 0 7.8-4.8 7.8-7.2V7.2C19.8 4.8 18.627 0 12 0H4.2zm9.9 4.8c1.327 0 2.1.792 2.1 2.4v9.6c0 1.608-.773 2.4-2.1 2.4H8.4V4.8h5.7z"/></svg> EPIC GAMES
       </div>
     </div>
 
@@ -926,36 +1245,32 @@
 <!-- MODALS -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
-    <div class="modal-title" id="modalTitle">STEAM BAĞLA</div>
-    <div class="modal-sub" id="modalSub">Steam kütüphaneni görüntülemek için bilgilerini gir</div>
+    <div class="modal-title" id="modalTitle">BAĞLAN</div>
+    <div class="modal-sub" id="modalSub">Kütüphaneni görüntülemek için hesabını bağla</div>
 
-    <div id="steamForm">
-      <input class="modal-input" type="text" id="steamApiKey" placeholder="Steam API Key (gizli kalır)">
-      <input class="modal-input" type="text" id="steamId" placeholder="Steam64 ID veya Profil URL">
+    <div id="steamForm" style="display:none">
+      <input class="modal-input" type="text" id="steamId" placeholder="Steam64 ID (örn: 76561199389197978)">
       <div class="modal-note">
-        API Key almak için → <a href="https://steamcommunity.com/dev/apikey" target="_blank">steamcommunity.com/dev/apikey</a><br>
         Steam64 ID bulmak için → <a href="https://steamid.io" target="_blank">steamid.io</a><br>
-        <strong style="color:var(--accent)">⚠ Key sadece tarayıcında saklanır, hiçbir yere gönderilmez.</strong>
+        Veya profil linkinden kopyala: steamcommunity.com/profiles/<strong>ID</strong><br>
+        <strong style="color:var(--accent)">⚠ Profil oyun listesi herkese açık olmalı.</strong>
       </div>
     </div>
 
     <div id="xboxForm" style="display:none">
-      <input class="modal-input" type="text" id="xboxGamertag" placeholder="Xbox Gamertag">
-      <div class="modal-note">
-        Xbox profili herkese açık olmalı.<br>
-        <strong style="color:var(--accent)">⚠ Xbox API için Microsoft OAuth gerekli — yakında!</strong>
+      <div class="modal-note" style="margin-bottom:0">
+        <strong style="color:var(--success)">✓ Bağlan butonuna bas, kütüphanen yüklensin.</strong>
       </div>
     </div>
 
     <div id="epicForm" style="display:none">
-      <input class="modal-input" type="text" id="epicUsername" placeholder="Epic Games kullanıcı adı">
-      <div class="modal-note">
+      <div class="modal-note" style="margin-bottom:0">
         Epic Games resmi API sunmuyor. Legendary CLI bridge kurulumu gerekli.<br>
-        <strong style="color:var(--accent)">⚠ Epic entegrasyonu beta aşamasında.</strong>
+        <strong style="color:var(--accent)">⚠ Epic entegrasyonu yakında geliyor.</strong>
       </div>
     </div>
 
-    <div class="modal-actions">
+    <div class="modal-actions" style="margin-top:20px">
       <button class="btn-primary" onclick="connectPlatform()">BAĞLAN</button>
       <button class="btn-secondary" onclick="closeModalDirect()">İPTAL</button>
     </div>
@@ -966,6 +1281,32 @@
 <div class="detail-panel" id="detailPanel">
   <div id="detailContent"></div>
 </div>
+
+<!-- BOTTOM NAV (mobil) -->
+<nav class="bottom-nav">
+  <div class="bnav-item active" id="bnavAll" onclick="bnavFilter('all')">
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7C4.24 3 2 5.24 2 8v6c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V8c0-2.76-2.24-5-5-5zm-8 8H8v1a1 1 0 0 1-2 0v-1H5a1 1 0 0 1 0-2h1V9a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2zm7.5 1a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm2-3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+    <span class="bnav-label">TÜMÜ</span>
+  </div>
+  <div class="bnav-item" id="bnavSteam" onclick="bnavFilter('steam')">
+    <!-- Steam logosu -->
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.606 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.455 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.252 0-2.265-1.014-2.265-2.265z"/></svg>
+    <span class="bnav-label">STEAM</span>
+  </div>
+  <div class="bnav-item" id="bnavXbox" onclick="bnavFilter('xbox')">
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.9 4.636s1.9 2.18 1.9 2.18 1.9-2.18 1.9-2.18c3.073.718 5.463 3.11 6.18 6.184 0 0-2.18-1.9-2.18-1.9s1.9 1.9 1.9 1.9c0 .13.004.26.004.392 0 4.364-3.536 7.9-7.9 7.9-4.364 0-7.9-3.536-7.9-7.9 0-.132.004-.262.004-.392 0 0 1.9-1.9 1.9-1.9S3.82 10.82 3.82 10.82C4.537 7.746 6.927 5.354 12 4.636z"/></svg>
+    <span class="bnav-label">XBOX</span>
+  </div>
+  <div class="bnav-item" id="bnavEpic" onclick="bnavFilter('epic')">
+    <!-- Epic Games logosu -->
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.2 0v24H12c6.627 0 7.8-4.8 7.8-7.2V7.2C19.8 4.8 18.627 0 12 0H4.2zm9.9 4.8c1.327 0 2.1.792 2.1 2.4v9.6c0 1.608-.773 2.4-2.1 2.4H8.4V4.8h5.7z"/></svg>
+    <span class="bnav-label">EPIC</span>
+  </div>
+  <div class="bnav-item platforms-btn" onclick="toggleDrawer()">
+    <svg class="bnav-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm0-13a1 1 0 0 0-1 1v4a1 1 0 0 0 .553.894l3 1.5a1 1 0 0 0 .894-1.788L13 11.382V8a1 1 0 0 0-1-1z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="bnav-label">HESAPLAR</span>
+  </div>
+</nav>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -989,20 +1330,73 @@ const STATE = {
 // ============================================================
 // WORKER URL — buraya kendi Cloudflare Worker URL'ini yaz
 // ============================================================
-const WORKER_URL = 'https://YOUR_WORKER.workers.dev';
+const WORKER_URL = 'https://pantheon.enesseker2113.workers.dev';
+
+// ============================================================
+// DRAWER (MOBİL)
+// ============================================================
+function toggleDrawer() {
+  var sidebar = document.querySelector('.sidebar');
+  var backdrop = document.getElementById('drawerBackdrop');
+  var isOpen = sidebar.classList.contains('drawer-open');
+  if (isOpen) {
+    sidebar.classList.remove('drawer-open');
+    backdrop.classList.remove('show');
+  } else {
+    sidebar.classList.add('drawer-open');
+    backdrop.classList.add('show');
+  }
+}
+
+function closeDrawer() {
+  document.querySelector('.sidebar').classList.remove('drawer-open');
+  document.getElementById('drawerBackdrop').classList.remove('show');
+}
+
+// Bottom nav platform filtresi
+function bnavFilter(platform) {
+  document.querySelectorAll('.bnav-item[id^="bnav"]').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  var el = document.getElementById('bnav' + platform.charAt(0).toUpperCase() + platform.slice(1));
+  if (el) { el.classList.add('active'); }
+  filterPlatform(platform);
+  closeDrawer();
+}
 
 // ============================================================
 // MODAL
 // ============================================================
 function showPlatformModal(platform) {
   STATE.currentModal = platform;
-  const overlay = document.getElementById('modalOverlay');
-  const titles = { steam: 'STEAM BAĞLA', xbox: 'XBOX BAĞLA', epic: 'EPIC GAMES BAĞLA' };
-  document.getElementById('modalTitle').textContent = titles[platform];
-  document.getElementById('steamForm').style.display = platform === 'steam' ? 'block' : 'none';
-  document.getElementById('xboxForm').style.display = platform === 'xbox' ? 'block' : 'none';
-  document.getElementById('epicForm').style.display = platform === 'epic' ? 'block' : 'none';
-  overlay.classList.add('open');
+
+  closeDrawer();
+
+  var titles = {
+    steam: 'STEAM BAĞLA',
+    xbox: 'XBOX BAĞLA',
+    epic: 'EPIC GAMES BAĞLA'
+  };
+  var subs = {
+    steam: 'Steam kütüphaneni görüntülemek için Steam64 ID gir',
+    xbox: 'Xbox kütüphaneni otomatik olarak yükle',
+    epic: 'Epic Games entegrasyonu hakkında bilgi'
+  };
+
+  document.getElementById('modalTitle').textContent = titles[platform] || 'BAĞLAN';
+  document.getElementById('modalSub').textContent = subs[platform] || '';
+
+  // Önce hepsini gizle
+  document.getElementById('steamForm').style.display = 'none';
+  document.getElementById('xboxForm').style.display = 'none';
+  document.getElementById('epicForm').style.display = 'none';
+
+  // Sadece seçileni göster
+  document.getElementById(platform + 'Form').style.display = 'block';
+
+  setTimeout(function() {
+    document.getElementById('modalOverlay').classList.add('open');
+  }, 150);
 }
 
 function closeModal(event) {
@@ -1017,21 +1411,21 @@ function closeModalDirect() {
 // CONNECT PLATFORM
 // ============================================================
 async function connectPlatform() {
-  const platform = STATE.currentModal;
+  var platform = STATE.currentModal;
 
   if (platform === 'steam') {
-    const apiKey = document.getElementById('steamApiKey').value.trim();
-    const steamId = document.getElementById('steamId').value.trim();
-    if (!apiKey || !steamId) { showToast('API Key ve Steam ID gerekli!', 'error'); return; }
-    STATE.credentials.steam = { apiKey, steamId };
-    localStorage.setItem('vault_steam', JSON.stringify({ apiKey, steamId }));
+    var steamId = document.getElementById('steamId').value.trim();
+    if (!steamId) { showToast('Steam ID gerekli!', 'error'); return; }
+    STATE.credentials.steam = { steamId: steamId };
+    localStorage.setItem('vault_steam', JSON.stringify({ steamId: steamId }));
     closeModalDirect();
-    await loadSteamLibrary(apiKey, steamId);
+    await loadSteamLibrary(steamId);
   }
 
   if (platform === 'xbox') {
-    showToast('Xbox OAuth entegrasyonu yakında geliyor!', 'error');
     closeModalDirect();
+    // Microsoft OAuth'a yönlendir
+    window.location.href = WORKER_URL + '/auth/login';
   }
 
   if (platform === 'epic') {
@@ -1041,62 +1435,103 @@ async function connectPlatform() {
 }
 
 // ============================================================
-// STEAM LIBRARY LOADER
+// XBOX LIBRARY + PLAYTIME (Microsoft OAuth ile)
 // ============================================================
-async function loadSteamLibrary(apiKey, steamId) {
+async function loadXboxLibraryWithPlaytime(xuid) {
   showLoading();
   try {
-    // Steam API — Worker proxy üzerinden çağrılır (CORS bypass)
-    const res = await fetch(`${WORKER_URL}/steam/library?key=${encodeURIComponent(apiKey)}&steamid=${encodeURIComponent(steamId)}`);
-    if (!res.ok) throw new Error('Worker hatası: ' + res.status);
-    const data = await res.json();
+    // Önce oyun listesini çek
+    var res = await fetch(WORKER_URL + '/xbox/library');
+    if (!res.ok) { throw new Error('Worker hatası: ' + res.status); }
+    var data = await res.json();
 
     if (!data.games || data.games.length === 0) {
-      showToast('Kütüphane boş veya gizli!', 'error');
+      showToast('Xbox kütüphanesi boş!', 'error');
       renderEmpty();
       return;
     }
 
-    const games = data.games.map(function(g) {
-      return {
-        appid: g.appid,
-        name: g.name,
-        platform: 'steam',
-        hours: Math.round((g.playtime_forever || 0) / 60),
-        minutes: g.playtime_forever || 0,
-        img: g.appid ? 'https://cdn.akamai.steamstatic.com/steam/apps/' + g.appid + '/header.jpg' : null,
-        achievements: { unlocked: 0, total: 0 },
-        recentMinutes: g.playtime_2weeks || 0
-      };
-    });
+    // Playtime'ı çek
+    try {
+      var ptRes = await fetch(WORKER_URL + '/auth/playtime?xuid=' + encodeURIComponent(xuid));
+      if (ptRes.ok) {
+        var playtimeMap = await ptRes.json();
+        // Oyunlara playtime ekle
+        for (var i = 0; i < data.games.length; i++) {
+          var tid = data.games[i].titleId;
+          if (playtimeMap[tid]) {
+            data.games[i].minutes = playtimeMap[tid];
+            data.games[i].hours = Math.round(playtimeMap[tid] / 60);
+          }
+        }
+      }
+    } catch (ptErr) {
+      console.warn('Playtime alınamadı:', ptErr.message);
+    }
 
-    // Başarımları toplu çek (ilk 20 oyun için)
-    await loadSteamAchievements(apiKey, steamId, games.slice(0, 20));
-
-    STATE.connected.steam = true;
-    updatePlatformCard('steam', games);
-    mergeGames(games, 'steam');
-    showToast('Steam kütüphanesi yüklendi! ' + games.length + ' oyun.', 'success');
+    STATE.connected.xbox = true;
+    updatePlatformCard('xbox', data.games);
+    mergeGames(data.games, 'xbox');
+    showToast('Xbox kütüphanesi yüklendi! ' + data.games.length + ' oyun.', 'success');
   } catch (err) {
     console.error(err);
-    showToast('Bağlantı hatası: ' + err.message, 'error');
+    showToast('Xbox bağlantı hatası: ' + err.message, 'error');
     renderEmpty();
   }
 }
 
-async function loadSteamAchievements(apiKey, steamId, games) {
-  for (var i = 0; i < games.length; i++) {
-    try {
-      const res = await fetch(`${WORKER_URL}/steam/achievements?key=${encodeURIComponent(apiKey)}&steamid=${encodeURIComponent(steamId)}&appid=${games[i].appid}`);
-      if (!res.ok) continue;
-      const data = await res.json();
-      if (data.achievements) {
-        games[i].achievements.total = data.achievements.length;
-        games[i].achievements.unlocked = data.achievements.filter(function(a) { return a.achieved === 1; }).length;
-      }
-    } catch (e) {
-      // başarım yok, devam et
+// ============================================================
+// XBOX LIBRARY LOADER (eski — playtime'sız)
+// ============================================================
+async function loadXboxLibrary() {
+  showLoading();
+  try {
+    var res = await fetch(WORKER_URL + '/xbox/library');
+    if (!res.ok) { throw new Error('Worker hatası: ' + res.status); }
+    var data = await res.json();
+
+    if (!data.games || data.games.length === 0) {
+      showToast('Xbox kütüphanesi boş!', 'error');
+      renderEmpty();
+      return;
     }
+
+    STATE.connected.xbox = true;
+    localStorage.setItem('vault_xbox', '1');
+    updatePlatformCard('xbox', data.games);
+    mergeGames(data.games, 'xbox');
+    showToast('Xbox kütüphanesi yüklendi! ' + data.games.length + ' oyun.', 'success');
+  } catch (err) {
+    console.error(err);
+    showToast('Xbox bağlantı hatası: ' + err.message, 'error');
+    renderEmpty();
+  }
+}
+
+// ============================================================
+// STEAM LIBRARY LOADER (key'siz XML)
+// ============================================================
+async function loadSteamLibrary(steamId) {
+  showLoading();
+  try {
+    var res = await fetch(WORKER_URL + '/steam/library?steamid=' + encodeURIComponent(steamId));
+    if (!res.ok) { throw new Error('Worker hatası: ' + res.status); }
+    var data = await res.json();
+
+    if (!data.games || data.games.length === 0) {
+      showToast('Steam kütüphanesi boş veya gizli!', 'error');
+      renderEmpty();
+      return;
+    }
+
+    STATE.connected.steam = true;
+    updatePlatformCard('steam', data.games);
+    mergeGames(data.games, 'steam');
+    showToast('Steam kütüphanesi yüklendi! ' + data.games.length + ' oyun.', 'success');
+  } catch (err) {
+    console.error(err);
+    showToast('Steam bağlantı hatası: ' + err.message, 'error');
+    renderEmpty();
   }
 }
 
@@ -1132,9 +1567,15 @@ function updatePlatformCard(platform, games) {
 
 function updateTotals() {
   var total = STATE.games.length;
-  var hours = STATE.games.reduce(function(sum, g) { return sum + g.hours; }, 0);
+  var steamHours = STATE.games.filter(function(g) { return g.platform === 'steam'; }).reduce(function(sum, g) { return sum + g.hours; }, 0);
+  var xboxScore = STATE.games.filter(function(g) { return g.platform === 'xbox'; }).reduce(function(sum, g) { return sum + (g.achievements.gamerscore || 0); }, 0);
   document.getElementById('totalCount').textContent = total;
-  document.getElementById('totalHours').textContent = hours + 's';
+  var hoursEl = document.getElementById('totalHours');
+  if (xboxScore > 0 && steamHours === 0) {
+    hoursEl.textContent = xboxScore + 'G';
+  } else {
+    hoursEl.textContent = steamHours + 's';
+  }
 }
 
 // ============================================================
@@ -1156,6 +1597,9 @@ function renderGames() {
       : '<div class="game-img-placeholder">🎮</div>';
 
     var delay = Math.min(idx * 0.03, 1);
+    var metaLeft = game.platform === 'xbox'
+      ? '<span class="game-hours">🎯 ' + (game.achievements.gamerscore || 0) + 'G</span>'
+      : '<span class="game-hours">' + game.hours + 's</span>';
 
     return '<div class="game-card" style="animation-delay:' + delay + 's" onclick="showDetail(' + idx + ')">' +
       imgHtml +
@@ -1163,8 +1607,8 @@ function renderGames() {
       '<div class="game-info">' +
         '<div class="game-title">' + escHtml(game.name) + '</div>' +
         '<div class="game-meta">' +
-          '<span class="game-hours">' + game.hours + 's</span>' +
-          (game.achievements.total > 0 ? '<span>🏆 ' + game.achievements.unlocked + '/' + game.achievements.total + '</span>' : '<span style="color:var(--muted)">—</span>') +
+          metaLeft +
+          (game.achievements.total > 0 ? '<span>🏆 ' + game.achievements.unlocked + '/' + game.achievements.total + '</span>' : '<span style="color:var(--muted)">' + (game.achievements.unlocked > 0 ? '🏆 ' + game.achievements.unlocked : '—') + '</span>') +
         '</div>' +
         (game.achievements.total > 0 ? '<div class="achievement-bar"><div class="achievement-fill" style="width:' + achPct + '%"></div></div>' : '') +
       '</div>' +
@@ -1185,51 +1629,240 @@ function showLoading() {
 // ============================================================
 // DETAIL PANEL
 // ============================================================
-function showDetail(idx) {
+async function showDetail(idx) {
   var game = STATE.filtered[idx];
   if (!game) return;
 
+  // Detay panelini aç, loading göster
+  document.getElementById('detailContent').innerHTML =
+    '<div class="loading" style="height:200px"><div class="spinner"></div>YÜKLENİYOR...</div>';
+  document.getElementById('detailPanel').classList.add('open');
+
+  // Xbox başarımlarını fetch et
+  if (game.platform === 'xbox' && game.titleId && !game.achievementList) {
+    try {
+      var res = await fetch(WORKER_URL + '/xbox/achievements?titleId=' + encodeURIComponent(game.titleId));
+      if (res.ok) {
+        var data = await res.json();
+        if (data.achievements && data.achievements.length > 0) {
+          game.achievementList = data.achievements;
+          game.achievements.total = data.achievements.length;
+          game.achievements.unlocked = data.achievements.filter(function(a) { return a.achieved; }).length;
+        }
+      }
+    } catch (e) {
+      console.warn('Başarım yüklenemedi:', e.message);
+    }
+  }
+
+  renderDetailPanel(game);
+}
+
+// ============================================================
+// OYUNA ÖZEL TEMA TANIMLARI
+// ============================================================
+var GAME_THEMES = {
+  // titleId bazlı özel temalar
+  '1739375565': { // Minecraft Dungeons
+    name: 'minecraft-dungeons',
+    primary: '#e8630a',
+    secondary: '#7c3300',
+    accent: '#ffd700',
+    bg: 'linear-gradient(135deg, #1a0a00 0%, #2d1200 50%, #0a0500 100%)',
+    font: 'Bebas Neue',
+    badge: '⚔️ DUNGEON CRAWLER',
+    pattern: 'dungeon'
+  },
+  '896928775': { // Minecraft for Windows
+    name: 'minecraft',
+    primary: '#5d9e3f',
+    secondary: '#3a6b28',
+    accent: '#7ec850',
+    bg: 'linear-gradient(135deg, #0a1f05 0%, #142d08 50%, #050f02 100%)',
+    font: 'DM Mono',
+    badge: '⛏️ SURVIVAL & CREATIVE',
+    pattern: 'blocks'
+  },
+  '1739947436': { // Minecraft for Android
+    name: 'minecraft',
+    primary: '#5d9e3f',
+    secondary: '#3a6b28',
+    accent: '#7ec850',
+    bg: 'linear-gradient(135deg, #0a1f05 0%, #142d08 50%, #050f02 100%)',
+    font: 'DM Mono',
+    badge: '📱 MOBILE',
+    pattern: 'blocks'
+  },
+  '1904044383': { // Minecraft Preview
+    name: 'minecraft',
+    primary: '#4a7a30',
+    secondary: '#2e5020',
+    accent: '#6aaa40',
+    bg: 'linear-gradient(135deg, #061502 0%, #0e2505 100%)',
+    font: 'DM Mono',
+    badge: '🧪 PREVIEW / BETA',
+    pattern: 'blocks'
+  },
+  '1794566092': { // Minecraft Launcher
+    name: 'minecraft',
+    primary: '#5d9e3f',
+    secondary: '#3a6b28',
+    accent: '#7ec850',
+    bg: 'linear-gradient(135deg, #0a1f05 0%, #142d08 100%)',
+    font: 'DM Mono',
+    badge: '🚀 LAUNCHER',
+    pattern: 'blocks'
+  },
+  '1720633196': { // Minecraft Dungeons for Windows
+    name: 'minecraft-dungeons',
+    primary: '#e8630a',
+    secondary: '#7c3300',
+    accent: '#ffd700',
+    bg: 'linear-gradient(135deg, #1a0a00 0%, #2d1200 100%)',
+    font: 'Bebas Neue',
+    badge: '⚔️ DUNGEON CRAWLER',
+    pattern: 'dungeon'
+  }
+};
+
+function getGameTheme(game) {
+  var tid = game.titleId || game.appid || '';
+  if (GAME_THEMES[tid]) { return GAME_THEMES[tid]; }
+  // Dinamik tema — isimden renk üret
+  return getDynamicTheme(game.name || '');
+}
+
+function getDynamicTheme(name) {
+  // İsimden deterministik renk üret
+  var hash = 0;
+  for (var i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  var h = Math.abs(hash) % 360;
+  var s = 55 + (Math.abs(hash >> 8) % 20);
+  var l = 35 + (Math.abs(hash >> 16) % 15);
+  var primary = 'hsl(' + h + ',' + s + '%,' + l + '%)';
+  var accent = 'hsl(' + ((h + 30) % 360) + ',' + s + '%,' + (l + 20) + '%)';
+  var bgH = h;
+  return {
+    name: 'dynamic',
+    primary: primary,
+    secondary: 'hsl(' + h + ',' + s + '%,' + (l - 15) + '%)',
+    accent: accent,
+    bg: 'linear-gradient(135deg, hsl(' + bgH + ',30%,5%) 0%, hsl(' + bgH + ',25%,8%) 100%)',
+    font: 'Syne',
+    badge: null,
+    pattern: null
+  };
+}
+
+function getPatternSvg(pattern, color) {
+  if (pattern === 'blocks') {
+    return 'url("data:image/svg+xml,%3Csvg width=\'32\' height=\'32\' viewBox=\'0 0 32 32\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect x=\'0\' y=\'0\' width=\'15\' height=\'15\' fill=\'none\' stroke=\'rgba(255,255,255,0.04)\' stroke-width=\'1\'/%3E%3Crect x=\'16\' y=\'0\' width=\'15\' height=\'15\' fill=\'none\' stroke=\'rgba(255,255,255,0.04)\' stroke-width=\'1\'/%3E%3Crect x=\'0\' y=\'16\' width=\'15\' height=\'15\' fill=\'none\' stroke=\'rgba(255,255,255,0.04)\' stroke-width=\'1\'/%3E%3Crect x=\'16\' y=\'16\' width=\'15\' height=\'15\' fill=\'none\' stroke=\'rgba(255,255,255,0.04)\' stroke-width=\'1\'/%3E%3C/svg%3E")';
+  }
+  if (pattern === 'dungeon') {
+    return 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'1\' fill=\'rgba(255,200,0,0.08)\'/%3E%3Cpath d=\'M0 20h40M20 0v40\' stroke=\'rgba(255,200,0,0.03)\' stroke-width=\'1\'/%3E%3C/svg%3E")';
+  }
+  return 'none';
+}
+
+function renderDetailPanel(game) {
+  var theme = getGameTheme(game);
   var achPct = game.achievements.total > 0 ? Math.round((game.achievements.unlocked / game.achievements.total) * 100) : 0;
 
-  var imgHtml = game.img
-    ? '<img class="detail-hero-img" src="' + game.img + '" alt="' + escHtml(game.name) + '">'
+  // Hero görsel — SuperHeroArt varsa onu kullan, yoksa normal img
+  var heroImgUrl = game.heroImg || game.img || '';
+  var imgHtml = heroImgUrl
+    ? '<img class="detail-hero-img" src="' + heroImgUrl + '" alt="' + escHtml(game.name) + '" style="width:100%;aspect-ratio:16/7;object-fit:cover;display:block;filter:brightness(0.85)">'
     : '<div class="detail-hero-placeholder">🎮</div>';
 
-  var achItems = '';
-  if (game.achievements && game.achievementList) {
-    achItems = game.achievementList.slice(0, 10).map(function(a) {
-      return '<div class="ach-item ' + (a.achieved ? 'unlocked' : '') + '">' +
-        '<span class="ach-icon">' + (a.achieved ? '🏆' : '🔒') + '</span>' +
-        '<div><div class="ach-name">' + escHtml(a.name || 'Başarım') + '</div>' +
-        '<div class="ach-desc">' + escHtml(a.description || '') + '</div></div>' +
-        '<span class="' + (a.achieved ? 'ach-check' : 'ach-lock') + '">' + (a.achieved ? '✓' : '○') + '</span>' +
-      '</div>';
-    }).join('');
+  // Detail panel arka planı
+  var panel = document.getElementById('detailPanel');
+  panel.setAttribute('style',
+    'right:0;' +
+    'background:' + theme.bg + ';' +
+    (theme.pattern && theme.pattern !== 'none'
+      ? 'background-image:' + getPatternSvg(theme.pattern) + ';background-blend-mode:overlay;'
+      : '') +
+    'position:fixed;top:73px;bottom:0;width:440px;overflow-y:auto;z-index:150;border-left:1px solid ' + theme.primary + '33;'
+  );
+
+  // Başarım listesi — hepsi göster, filtreli
+  var allAch = game.achievementList || [];
+  var unlockedAch = allAch.filter(function(a) { return a.achieved; });
+  var lockedAch = allAch.filter(function(a) { return !a.achieved; });
+
+  function renderAchItem(a) {
+    var timeStr = '';
+    if (a.achieved && a.timeUnlocked && a.timeUnlocked.indexOf('0001') === -1) {
+      var d = new Date(a.timeUnlocked);
+      timeStr = d.toLocaleDateString('tr-TR');
+    }
+    return '<div class="ach-item ' + (a.achieved ? 'unlocked' : '') + '" style="' +
+      (a.achieved ? 'border-color:' + theme.primary + '22;background:' + theme.primary + '11' : '') + '">' +
+      (a.icon
+        ? '<img src="' + a.icon + '" class="ach-icon-img" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+        : '<span class="ach-icon">' + (a.achieved ? '🏆' : '🔒') + '</span>') +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="ach-name" style="' + (a.achieved ? 'color:' + theme.accent : '') + '">' + escHtml(a.name || 'Başarım') + '</div>' +
+        '<div class="ach-desc">' + escHtml(a.description || '') + '</div>' +
+        (timeStr ? '<div class="ach-date">' + timeStr + '</div>' : '') +
+      '</div>' +
+      '<div style="text-align:right;flex-shrink:0">' +
+        '<span class="ach-gs">' + (a.gamerscore || 0) + 'G</span>' +
+        (a.isSecret ? '<span class="ach-secret">🔐</span>' : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  var achListHtml = '';
+  if (allAch.length > 0) {
+    achListHtml =
+      '<div class="ach-tabs">' +
+        '<button class="ach-tab active" onclick="switchAchTab(this,\'all\')" style="--tab-color:' + theme.primary + '">TÜMÜ (' + allAch.length + ')</button>' +
+        '<button class="ach-tab" onclick="switchAchTab(this,\'unlocked\')" style="--tab-color:' + theme.accent + '">AÇILAN (' + unlockedAch.length + ')</button>' +
+        '<button class="ach-tab" onclick="switchAchTab(this,\'locked\')" style="--tab-color:' + theme.primary + '">KİLİTLİ (' + lockedAch.length + ')</button>' +
+      '</div>' +
+      '<div id="achListAll" class="ach-list">' + allAch.map(renderAchItem).join('') + '</div>' +
+      '<div id="achListUnlocked" class="ach-list" style="display:none">' + unlockedAch.map(renderAchItem).join('') + '</div>' +
+      '<div id="achListLocked" class="ach-list" style="display:none">' + lockedAch.map(renderAchItem).join('') + '</div>';
+  } else {
+    achListHtml = '<div style="color:var(--muted);font-size:0.72rem;letter-spacing:0.05em;padding:16px 0">Bu oyun için başarım verisi yok.</div>';
   }
 
   document.getElementById('detailContent').innerHTML =
-    '<div class="detail-hero">' +
+    '<div class="detail-hero" style="position:relative">' +
       imgHtml +
+      (theme.badge ? '<div class="game-badge" style="background:' + theme.primary + '">' + theme.badge + '</div>' : '') +
+      '<div class="detail-hero-overlay" style="background:linear-gradient(to top, ' + theme.bg.split('(')[1].split(',')[0].replace('135deg','').trim() + ' 0%, transparent 60%)"></div>' +
       '<button class="detail-close" onclick="closeDetail()">✕</button>' +
     '</div>' +
     '<div class="detail-body">' +
-      '<div class="detail-title">' + escHtml(game.name) + '</div>' +
-      '<div class="detail-platform">' + game.platform.toUpperCase() + ' PLATFORM</div>' +
+      '<div class="detail-title" style="font-family:\'' + theme.font + '\',sans-serif;color:' + theme.accent + ';text-shadow:0 0 20px ' + theme.primary + '66">' + escHtml(game.name) + '</div>' +
+      '<div class="detail-platform" style="color:' + theme.primary + '">' + game.platform.toUpperCase() + ' PLATFORM</div>' +
       '<div class="detail-stats">' +
-        '<div class="dstat"><span class="dstat-value">' + game.hours + '</span><span class="dstat-label">SAAT</span></div>' +
-        '<div class="dstat"><span class="dstat-value">' + game.achievements.unlocked + '</span><span class="dstat-label">BAŞARIM</span></div>' +
-        '<div class="dstat"><span class="dstat-value">' + achPct + '%</span><span class="dstat-label">TAMAMLAMA</span></div>' +
+        (game.platform === 'xbox'
+          ? '<div class="dstat" style="border-color:' + theme.primary + '44;background:' + theme.primary + '11"><span class="dstat-value" style="color:' + theme.accent + '">' + (game.achievements.gamerscore || 0) + '</span><span class="dstat-label">GAMERSCORE</span></div>'
+          : '<div class="dstat" style="border-color:' + theme.primary + '44;background:' + theme.primary + '11"><span class="dstat-value" style="color:' + theme.accent + '">' + game.hours + '</span><span class="dstat-label">SAAT</span></div>') +
+        '<div class="dstat" style="border-color:' + theme.primary + '44;background:' + theme.primary + '11"><span class="dstat-value" style="color:' + theme.accent + '">' + game.achievements.unlocked + '</span><span class="dstat-label">BAŞARIM</span></div>' +
+        '<div class="dstat" style="border-color:' + theme.primary + '44;background:' + theme.primary + '11"><span class="dstat-value" style="color:' + theme.accent + '">' + achPct + '%</span><span class="dstat-label">TAMAMLAMA</span></div>' +
       '</div>' +
-      (game.achievements.total > 0 ?
+      (allAch.length > 0 ?
         '<div class="achievements-section">' +
-          '<div class="ach-header"><div class="section-label" style="margin:0">BAŞARIMLAR</div><div class="ach-progress-text">' + game.achievements.unlocked + ' / ' + game.achievements.total + '</div></div>' +
-          '<div class="ach-bar"><div class="ach-bar-fill" style="width:' + achPct + '%"></div></div>' +
-          (achItems ? '<div class="ach-list">' + achItems + '</div>' : '') +
+          '<div class="ach-header"><div class="section-label" style="margin:0;color:' + theme.primary + '">BAŞARIMLAR</div><div class="ach-progress-text">' + game.achievements.unlocked + ' / ' + game.achievements.total + '</div></div>' +
+          '<div class="ach-bar"><div class="ach-bar-fill" style="width:' + achPct + '%;background:linear-gradient(90deg,' + theme.primary + ',' + theme.accent + ')"></div></div>' +
+          achListHtml +
         '</div>'
-        : '<div style="color:var(--muted);font-size:0.72rem;letter-spacing:0.05em">Bu oyun için başarım verisi yok.</div>') +
+        : achListHtml) +
     '</div>';
+}
 
-  document.getElementById('detailPanel').classList.add('open');
+function switchAchTab(btn, type) {
+  document.querySelectorAll('.ach-tab').forEach(function(t) { t.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('achListAll').style.display = type === 'all' ? 'flex' : 'none';
+  document.getElementById('achListUnlocked').style.display = type === 'unlocked' ? 'flex' : 'none';
+  document.getElementById('achListLocked').style.display = type === 'locked' ? 'flex' : 'none';
 }
 
 function closeDetail() {
@@ -1241,19 +1874,20 @@ function closeDetail() {
 // ============================================================
 function filterPlatform(platform) {
   STATE.activePlatform = platform;
+  closeDrawer();
   document.querySelectorAll('[id^="nav"]').forEach(function(el) { el.classList.remove('active'); });
   var navMap = { all: 'navAll', steam: 'navSteam', xbox: 'navXbox', epic: 'navEpic' };
-  if (navMap[platform]) document.getElementById(navMap[platform]).classList.add('active');
-
+  if (navMap[platform]) { document.getElementById(navMap[platform]).classList.add('active'); }
   applyFilters();
 }
 
 function filterType(type) {
   STATE.activeFilter = STATE.activeFilter === type ? null : type;
+  closeDrawer();
   document.querySelectorAll('#navRecent,#navAch,#navMost').forEach(function(el) { el.classList.remove('active'); });
   if (STATE.activeFilter) {
     var map = { recent: 'navRecent', achievements: 'navAch', most: 'navMost' };
-    if (map[type]) document.getElementById(map[type]).classList.add('active');
+    if (map[type]) { document.getElementById(map[type]).classList.add('active'); }
   }
   applyFilters();
 }
@@ -1339,14 +1973,30 @@ function escHtml(str) {
 // INIT — localStorage'dan kayıtlı credentials yükle
 // ============================================================
 (function init() {
+  // OAuth callback'ten dönen xuid'i yakala
+  var urlParams = new URLSearchParams(window.location.search);
+  var xboxXuid = urlParams.get('xbox_xuid');
+  if (xboxXuid) {
+    localStorage.setItem('vault_xbox_xuid', xboxXuid);
+    // URL'den parametreyi temizle
+    window.history.replaceState({}, '', window.location.pathname);
+    loadXboxLibraryWithPlaytime(xboxXuid);
+  }
+
+  // Kayıtlı Xbox oturumu
+  var savedXuid = localStorage.getItem('vault_xbox_xuid');
+  if (savedXuid && !xboxXuid) {
+    loadXboxLibraryWithPlaytime(savedXuid);
+  }
+
+  // Kayıtlı Steam
   var steamSaved = localStorage.getItem('vault_steam');
   if (steamSaved) {
     try {
       var creds = JSON.parse(steamSaved);
       STATE.credentials.steam = creds;
-      document.getElementById('steamApiKey').value = creds.apiKey;
       document.getElementById('steamId').value = creds.steamId;
-      loadSteamLibrary(creds.apiKey, creds.steamId);
+      loadSteamLibrary(creds.steamId);
     } catch (e) {
       localStorage.removeItem('vault_steam');
     }
