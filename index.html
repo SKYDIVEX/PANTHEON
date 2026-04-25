@@ -1327,7 +1327,8 @@ async function connectPlatform() {
 
   if (platform === 'xbox') {
     closeModalDirect();
-    await loadXboxLibrary();
+    // Microsoft OAuth'a yönlendir
+    window.location.href = WORKER_URL + '/auth/login';
   }
 
   if (platform === 'epic') {
@@ -1337,7 +1338,53 @@ async function connectPlatform() {
 }
 
 // ============================================================
-// XBOX LIBRARY LOADER
+// XBOX LIBRARY + PLAYTIME (Microsoft OAuth ile)
+// ============================================================
+async function loadXboxLibraryWithPlaytime(xuid) {
+  showLoading();
+  try {
+    // Önce oyun listesini çek
+    var res = await fetch(WORKER_URL + '/xbox/library');
+    if (!res.ok) { throw new Error('Worker hatası: ' + res.status); }
+    var data = await res.json();
+
+    if (!data.games || data.games.length === 0) {
+      showToast('Xbox kütüphanesi boş!', 'error');
+      renderEmpty();
+      return;
+    }
+
+    // Playtime'ı çek
+    try {
+      var ptRes = await fetch(WORKER_URL + '/auth/playtime?xuid=' + encodeURIComponent(xuid));
+      if (ptRes.ok) {
+        var playtimeMap = await ptRes.json();
+        // Oyunlara playtime ekle
+        for (var i = 0; i < data.games.length; i++) {
+          var tid = data.games[i].titleId;
+          if (playtimeMap[tid]) {
+            data.games[i].minutes = playtimeMap[tid];
+            data.games[i].hours = Math.round(playtimeMap[tid] / 60);
+          }
+        }
+      }
+    } catch (ptErr) {
+      console.warn('Playtime alınamadı:', ptErr.message);
+    }
+
+    STATE.connected.xbox = true;
+    updatePlatformCard('xbox', data.games);
+    mergeGames(data.games, 'xbox');
+    showToast('Xbox kütüphanesi yüklendi! ' + data.games.length + ' oyun.', 'success');
+  } catch (err) {
+    console.error(err);
+    showToast('Xbox bağlantı hatası: ' + err.message, 'error');
+    renderEmpty();
+  }
+}
+
+// ============================================================
+// XBOX LIBRARY LOADER (eski — playtime'sız)
 // ============================================================
 async function loadXboxLibrary() {
   showLoading();
@@ -1423,9 +1470,15 @@ function updatePlatformCard(platform, games) {
 
 function updateTotals() {
   var total = STATE.games.length;
-  var hours = STATE.games.reduce(function(sum, g) { return sum + g.hours; }, 0);
+  var steamHours = STATE.games.filter(function(g) { return g.platform === 'steam'; }).reduce(function(sum, g) { return sum + g.hours; }, 0);
+  var xboxScore = STATE.games.filter(function(g) { return g.platform === 'xbox'; }).reduce(function(sum, g) { return sum + (g.achievements.gamerscore || 0); }, 0);
   document.getElementById('totalCount').textContent = total;
-  document.getElementById('totalHours').textContent = hours + 's';
+  var hoursEl = document.getElementById('totalHours');
+  if (xboxScore > 0 && steamHours === 0) {
+    hoursEl.textContent = xboxScore + 'G';
+  } else {
+    hoursEl.textContent = steamHours + 's';
+  }
 }
 
 // ============================================================
@@ -1447,6 +1500,9 @@ function renderGames() {
       : '<div class="game-img-placeholder">🎮</div>';
 
     var delay = Math.min(idx * 0.03, 1);
+    var metaLeft = game.platform === 'xbox'
+      ? '<span class="game-hours">🎯 ' + (game.achievements.gamerscore || 0) + 'G</span>'
+      : '<span class="game-hours">' + game.hours + 's</span>';
 
     return '<div class="game-card" style="animation-delay:' + delay + 's" onclick="showDetail(' + idx + ')">' +
       imgHtml +
@@ -1454,8 +1510,8 @@ function renderGames() {
       '<div class="game-info">' +
         '<div class="game-title">' + escHtml(game.name) + '</div>' +
         '<div class="game-meta">' +
-          '<span class="game-hours">' + game.hours + 's</span>' +
-          (game.achievements.total > 0 ? '<span>🏆 ' + game.achievements.unlocked + '/' + game.achievements.total + '</span>' : '<span style="color:var(--muted)">—</span>') +
+          metaLeft +
+          (game.achievements.total > 0 ? '<span>🏆 ' + game.achievements.unlocked + '/' + game.achievements.total + '</span>' : '<span style="color:var(--muted)">' + (game.achievements.unlocked > 0 ? '🏆 ' + game.achievements.unlocked : '—') + '</span>') +
         '</div>' +
         (game.achievements.total > 0 ? '<div class="achievement-bar"><div class="achievement-fill" style="width:' + achPct + '%"></div></div>' : '') +
       '</div>' +
@@ -1507,7 +1563,9 @@ function showDetail(idx) {
       '<div class="detail-title">' + escHtml(game.name) + '</div>' +
       '<div class="detail-platform">' + game.platform.toUpperCase() + ' PLATFORM</div>' +
       '<div class="detail-stats">' +
-        '<div class="dstat"><span class="dstat-value">' + game.hours + '</span><span class="dstat-label">SAAT</span></div>' +
+        (game.platform === 'xbox'
+          ? '<div class="dstat"><span class="dstat-value">' + (game.achievements.gamerscore || 0) + '</span><span class="dstat-label">GAMERSCORE</span></div>'
+          : '<div class="dstat"><span class="dstat-value">' + game.hours + '</span><span class="dstat-label">SAAT</span></div>') +
         '<div class="dstat"><span class="dstat-value">' + game.achievements.unlocked + '</span><span class="dstat-label">BAŞARIM</span></div>' +
         '<div class="dstat"><span class="dstat-value">' + achPct + '%</span><span class="dstat-label">TAMAMLAMA</span></div>' +
       '</div>' +
@@ -1631,6 +1689,23 @@ function escHtml(str) {
 // INIT — localStorage'dan kayıtlı credentials yükle
 // ============================================================
 (function init() {
+  // OAuth callback'ten dönen xuid'i yakala
+  var urlParams = new URLSearchParams(window.location.search);
+  var xboxXuid = urlParams.get('xbox_xuid');
+  if (xboxXuid) {
+    localStorage.setItem('vault_xbox_xuid', xboxXuid);
+    // URL'den parametreyi temizle
+    window.history.replaceState({}, '', window.location.pathname);
+    loadXboxLibraryWithPlaytime(xboxXuid);
+  }
+
+  // Kayıtlı Xbox oturumu
+  var savedXuid = localStorage.getItem('vault_xbox_xuid');
+  if (savedXuid && !xboxXuid) {
+    loadXboxLibraryWithPlaytime(savedXuid);
+  }
+
+  // Kayıtlı Steam
   var steamSaved = localStorage.getItem('vault_steam');
   if (steamSaved) {
     try {
@@ -1641,12 +1716,6 @@ function escHtml(str) {
     } catch (e) {
       localStorage.removeItem('vault_steam');
     }
-  }
-
-  // Xbox otomatik yükle
-  var xboxSaved = localStorage.getItem('vault_xbox');
-  if (xboxSaved) {
-    loadXboxLibrary();
   }
 })();
 </script>
