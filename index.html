@@ -582,10 +582,10 @@
     top: 73px;
     bottom: 0;
     width: 440px;
-    background: var(--panel-bg, var(--surface));
-    border-left: 1px solid var(--panel-border, var(--border));
+    background: #0e1117;
+    border-left: 1px solid var(--border);
     z-index: 150;
-    transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.3s ease;
+    transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     overflow-y: auto;
   }
 
@@ -1201,7 +1201,7 @@
         <img src="https://www.xbox.com/favicon-192.png" width="14" height="14" style="border-radius:2px;object-fit:contain"> XBOX
       </div>
       <div class="nav-item" id="navEpic" onclick="filterPlatform('epic')">
-        <img src="https://store.epicgames.com/favicon.ico" width="14" height="14" style="border-radius:2px;object-fit:contain;filter:invert(1)"> EPIC GAMES
+        <img src="https://static-assets-prod.epicgames.com/epic-store/static/favicon.ico" width="14" height="14" style="border-radius:2px;object-fit:contain"> EPIC GAMES
       </div>
     </div>
 
@@ -1311,7 +1311,7 @@
     <span class="bnav-label">XBOX</span>
   </div>
   <div class="bnav-item" id="bnavEpic" onclick="bnavFilter('epic')">
-    <img src="https://store.epicgames.com/favicon.ico" class="bnav-svg" style="object-fit:contain;border-radius:4px;filter:invert(1)" onerror="this.style.display='none'">
+    <img src="https://static-assets-prod.epicgames.com/epic-store/static/favicon.ico" class="bnav-svg" style="object-fit:contain;border-radius:4px" onerror="this.style.display='none'">
     <span class="bnav-label">EPIC</span>
   </div>
   <div class="bnav-item platforms-btn" onclick="toggleDrawer()">
@@ -1788,15 +1788,13 @@ function renderDetailPanel(game) {
     ? '<img class="detail-hero-img" src="' + heroImgUrl + '" alt="' + escHtml(game.name) + '" style="width:100%;aspect-ratio:16/7;object-fit:cover;display:block;filter:brightness(0.85)">'
     : '<div class="detail-hero-placeholder">🎮</div>';
 
-  // Detail panel arka planı — CSS variable ile
+  // Detail panel arka planı
   var panel = document.getElementById('detailPanel');
-  panel.style.setProperty('--panel-bg', theme.bg);
-  panel.style.setProperty('--panel-border', theme.primary + '44');
-  if (theme.pattern && theme.pattern !== 'none') {
-    panel.style.backgroundImage = getPatternSvg(theme.pattern);
-  } else {
-    panel.style.backgroundImage = 'none';
-  }
+  panel.style.removeProperty('background');
+  panel.style.removeProperty('background-image');
+  // Tema rengini uygula
+  var bgColor = theme.bg || 'linear-gradient(135deg,#0a0a0a,#111)';
+  panel.style.cssText = panel.style.cssText + ';background:' + bgColor + ' !important;border-left:1px solid ' + theme.primary + '44 !important;';
 
   // Başarım listesi — hepsi göster, filtreli
   var allAch = game.achievementList || [];
