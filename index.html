@@ -1532,10 +1532,36 @@ function showLoading() {
 // ============================================================
 // DETAIL PANEL
 // ============================================================
-function showDetail(idx) {
+async function showDetail(idx) {
   var game = STATE.filtered[idx];
   if (!game) return;
 
+  // Detay panelini aç, loading göster
+  document.getElementById('detailContent').innerHTML =
+    '<div class="loading" style="height:200px"><div class="spinner"></div>YÜKLENİYOR...</div>';
+  document.getElementById('detailPanel').classList.add('open');
+
+  // Xbox başarımlarını fetch et
+  if (game.platform === 'xbox' && game.titleId && !game.achievementList) {
+    try {
+      var res = await fetch(WORKER_URL + '/xbox/achievements?titleId=' + encodeURIComponent(game.titleId));
+      if (res.ok) {
+        var data = await res.json();
+        if (data.achievements && data.achievements.length > 0) {
+          game.achievementList = data.achievements;
+          game.achievements.total = data.achievements.length;
+          game.achievements.unlocked = data.achievements.filter(function(a) { return a.achieved; }).length;
+        }
+      }
+    } catch (e) {
+      console.warn('Başarım yüklenemedi:', e.message);
+    }
+  }
+
+  renderDetailPanel(game);
+}
+
+function renderDetailPanel(game) {
   var achPct = game.achievements.total > 0 ? Math.round((game.achievements.unlocked / game.achievements.total) * 100) : 0;
 
   var imgHtml = game.img
@@ -1543,8 +1569,8 @@ function showDetail(idx) {
     : '<div class="detail-hero-placeholder">🎮</div>';
 
   var achItems = '';
-  if (game.achievements && game.achievementList) {
-    achItems = game.achievementList.slice(0, 10).map(function(a) {
+  if (game.achievementList && game.achievementList.length > 0) {
+    achItems = game.achievementList.slice(0, 15).map(function(a) {
       return '<div class="ach-item ' + (a.achieved ? 'unlocked' : '') + '">' +
         '<span class="ach-icon">' + (a.achieved ? '🏆' : '🔒') + '</span>' +
         '<div><div class="ach-name">' + escHtml(a.name || 'Başarım') + '</div>' +
@@ -1577,8 +1603,6 @@ function showDetail(idx) {
         '</div>'
         : '<div style="color:var(--muted);font-size:0.72rem;letter-spacing:0.05em">Bu oyun için başarım verisi yok.</div>') +
     '</div>';
-
-  document.getElementById('detailPanel').classList.add('open');
 }
 
 function closeDetail() {
